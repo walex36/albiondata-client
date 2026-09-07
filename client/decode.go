@@ -130,7 +130,7 @@ func decodeEvent(params map[uint8]interface{}) (event operation, err error) {
 		return nil, nil
 	}
 
-	// log.Infof("decodeEvent: %v, params: %v", eventType, params)
+	log.Infof("[Sniffer Debug] decodeEvent: %v (params keys: %v)", eventType, getMapKeys(params))
 
 	switch EventType(eventType) {
 	// case evRespawn: //TODO: confirm this eventCode (old 77)
@@ -415,4 +415,12 @@ func resolveEventCode(params map[uint8]interface{}) (uint16, bool) {
 		return 0, false
 	}
 	return normalizeEventCode(code), true
+}
+
+func getMapKeys(m map[uint8]interface{}) []uint8 {
+	keys := make([]uint8, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
 }
