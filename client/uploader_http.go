@@ -51,7 +51,7 @@ func (u *httpUploader) sendToIngest(body []byte, topic string, state *albionStat
 		return
 	}
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		log.Errorf("Got bad response code: %v", resp.StatusCode)
 		return
 	}
