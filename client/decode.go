@@ -2,6 +2,7 @@ package client
 
 import (
 	"encoding/hex"
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -45,6 +46,9 @@ func decodeRequest(params map[uint8]interface{}) (operation operation, err error
 	if !ok {
 		return nil, nil
 	}
+	if code != 1 && code != 22 {
+		log.Infof("[Sniffer Debug Request] code: %v (keys: %v)", code, getMapKeys(params))
+	}
 
 	switch OperationType(code) {
 	case opGetGameServerByCluster:
@@ -77,10 +81,20 @@ func decodeResponse(params map[uint8]interface{}) (operation operation, err erro
 		return nil, nil
 	}
 
-	// log.Infof("decodeResponse: %v, params: %v", code, params)
+	log.Infof("[Sniffer Debug Response] code: %v (keys: %v)", code, getMapKeys(params))
 
 	switch OperationType(code) {
 	case opJoin:
+		log.Infof("[opJoin DUMP START] Total keys: %d", len(params))
+		for k, v := range params {
+			if k == 55 {
+				if b, ok := v.([]uint8); ok {
+					log.Infof("[opJoin Key 55 LENGTH] %d bytes", len(b))
+				}
+			}
+			log.Infof("[opJoin Key %v] Type: %T | Preview: %v", k, v, formatVal(v))
+		}
+		log.Infof("[opJoin DUMP END]")
 		operation = &operationJoinResponse{}
 	case opGetGameServerByCluster:
 		operation = &operationGetGameServerByCluster{}
@@ -130,12 +144,14 @@ func decodeEvent(params map[uint8]interface{}) (event operation, err error) {
 		return nil, nil
 	}
 
-	log.Infof("[Sniffer Debug] decodeEvent: %v (params keys: %v)", eventType, getMapKeys(params))
+	// Silencia eventos barulhentos para deixar o terminal limpo
+	if eventType == 141 {
+		log.Infof("[Target Event 141 Details] p[0]=%v | p[1]=%v | p[2]=%v | p[3]=%v | p[4]=%v", formatVal(params[0]), formatVal(params[1]), formatVal(params[2]), formatVal(params[3]), formatVal(params[4]))
+	}
 
 	switch EventType(eventType) {
-	// case evRespawn: //TODO: confirm this eventCode (old 77)
-	// 	event = &eventPlayerOnlineStatus{}
-	case evCharacterStats:
+	case evCharacterStats, evFullAchievementInfo, evAchievementProgressInfo, evFullAchievementProgressInfo, evEpicAchievementAndStatsUpdate:
+		log.Infof("[🔥 DISPARO DESTINY BOARD %v] Iniciando parse para eventSkillData!", eventType)
 		event = &eventSkillData{}
 	//case evRedZonePlayerNotification:
 	//	event = &eventRedZonePlayerNotification{}
@@ -423,4 +439,11 @@ func getMapKeys(m map[uint8]interface{}) []uint8 {
 		keys = append(keys, k)
 	}
 	return keys
+}
+
+func formatVal(v interface{}) string {
+	if v == nil { return "<nil>" }
+	s := fmt.Sprintf("%v", v)
+	if len(s) > 60 { return s[:60] + "..." }
+	return s
 }

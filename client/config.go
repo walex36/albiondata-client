@@ -303,8 +303,8 @@ func (config *config) setupCommonFlags() {
 	flag.StringVar(
 		&config.AlbionMarketAPIUrl,
 		"albion-market-url",
-		"http://localhost:3001/api",
-		"Albion Market API URL (defaults to http://localhost:3001/api)",
+		"http://localhost:3001",
+		"Albion Market API URL (defaults to http://localhost:3001)",
 	)
 }
 
