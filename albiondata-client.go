@@ -320,6 +320,9 @@ func setupTray(app *application.App, dashboardWindow *application.WebviewWindow)
 	})
 
 	menu := app.NewMenu()
+	menu.Add("Albion Market (Web)").OnClick(func(ctx *application.Context) {
+		app.Browser.OpenURL("https://albion-market.com")
+	})
 	menu.Add("Open Dashboard").OnClick(func(ctx *application.Context) {
 		// Show() alone doesn't activate the app on macOS (see
 		// showDashboardWindow's comment); Focus() does, so the window

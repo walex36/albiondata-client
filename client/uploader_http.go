@@ -41,6 +41,9 @@ func (u *httpUploader) sendToIngest(body []byte, topic string, state *albionStat
 	}
 
 	req.Header.Set("Content-Type", "application/json")
+	if ConfigGlobal.SyncToken != "" {
+		req.Header.Set("x-sync-token", ConfigGlobal.SyncToken)
+	}
 
 	resp, err := u.client.Do(req)
 	if err != nil {

@@ -2,6 +2,7 @@ package client
 
 import (
 	"flag"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -69,6 +70,8 @@ type config struct {
 	PrintVersion                   bool
 	UpdateGithubOwner              string
 	UpdateGithubRepo               string
+	SyncToken                      string
+	AlbionMarketAPIUrl             string
 }
 
 // config global config data
@@ -101,7 +104,54 @@ func (config *config) SetupFlags() {
 	}
 
 	config.setupLogs()
+	config.loadAlbionMarketConfig()
+
+	if config.SyncToken != "" && config.PrivateIngestBaseUrls == "" {
+		config.PrivateIngestBaseUrls = config.AlbionMarketAPIUrl
+		log.Infof("[AlbionMarket] Configured private skills ingest to: %s", config.PrivateIngestBaseUrls)
+	}
 }
+
+func getAlbionMarketConfigPath() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
+	appData := os.Getenv("APPDATA")
+	if appData != "" {
+		return filepath.Join(appData, "AlbionMarket", "config.json")
+	}
+	macPath := filepath.Join(home, "Library", "Application Support", "AlbionMarket", "config.json")
+	if _, err := os.Stat(filepath.Dir(macPath)); err == nil {
+		return macPath
+	}
+	return filepath.Join(home, ".config", "AlbionMarket", "config.json")
+}
+
+func (config *config) loadAlbionMarketConfig() {
+	cfgPath := getAlbionMarketConfigPath()
+	if cfgPath == "" {
+		return
+	}
+	data, err := os.ReadFile(cfgPath)
+	if err != nil {
+		return
+	}
+	var localCfg struct {
+		SyncToken string `json:"syncToken"`
+		APIUrl    string `json:"remoteApiUrl"`
+	}
+	if err := json.Unmarshal(data, &localCfg); err == nil {
+		if config.SyncToken == "" && localCfg.SyncToken != "" {
+			config.SyncToken = localCfg.SyncToken
+			log.Infof("[AlbionMarket] Loaded SyncToken from %s", cfgPath)
+		}
+		if localCfg.APIUrl != "" {
+			config.AlbionMarketAPIUrl = localCfg.APIUrl
+		}
+	}
+}
+
 
 func (config *config) setupWebsocketFlags() {
 	// Setup the config file and parse values
@@ -241,6 +291,20 @@ func (config *config) setupCommonFlags() {
 		"record",
 		"",
 		"Enable recording commands to a file for debugging later.",
+	)
+
+	flag.StringVar(
+		&config.SyncToken,
+		"sync-token",
+		"",
+		"Albion Market Destiny Sync Token (e.g. am_sync_...)",
+	)
+
+	flag.StringVar(
+		&config.AlbionMarketAPIUrl,
+		"albion-market-url",
+		"http://localhost:3001/api",
+		"Albion Market API URL (defaults to http://localhost:3001/api)",
 	)
 }
 
