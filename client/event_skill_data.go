@@ -46,5 +46,10 @@ func (event eventSkillData) Process(state *albionState) {
 
 	identifier, _ := uuid.NewV4()
 	log.Infof("Sending %d skills of %v to ingest", len(skills), state.CharacterName)
+	for _, sk := range skills {
+		if sk.Level > 0 || sk.ID == 683 || sk.ID == 24 || sk.ID == 680 || sk.ID == 681 || sk.ID == 682 {
+			log.Infof("[Skill Debug] ID: %d | Level: %d | Fame: %d", sk.ID, sk.Level, sk.Fame)
+		}
+	}
 	sendMsgToPrivateUploaders(&upload, lib.NatsSkillData, state, identifier.String())
 }

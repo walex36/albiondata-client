@@ -150,7 +150,7 @@ func decodeEvent(params map[uint8]interface{}) (event operation, err error) {
 	}
 
 	switch EventType(eventType) {
-	case evCharacterStats, evFullAchievementInfo, evAchievementProgressInfo, evFullAchievementProgressInfo, evEpicAchievementAndStatsUpdate:
+	case evCharacterStats, evFullAchievementInfo, evAchievementProgressInfo, evFullAchievementProgressInfo, evFinishedAchievement, evFullTrackedAchievementInfo, evFullAutoLearnAchievementInfo, evEpicAchievementAndStatsUpdate:
 		log.Infof("[🔥 DISPARO DESTINY BOARD %v] Iniciando parse para eventSkillData!", eventType)
 		event = &eventSkillData{}
 	//case evRedZonePlayerNotification:
