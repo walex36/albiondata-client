@@ -63,6 +63,7 @@ func init() {
 	application.RegisterEvent[dashboard.Status]("status:changed")
 	application.RegisterEvent[map[string]int64]("counters:snapshot")
 	application.RegisterEvent[dashboard.LogLine]("log:line")
+	application.RegisterEvent[map[string]string]("albionmarket:saveconfig")
 }
 
 func main() {
@@ -236,8 +237,31 @@ func runDashboardApp() {
 
 	dashboard.SetAlbionMarketConfig(
 		client.ConfigGlobal.SyncToken != "",
+		client.ConfigGlobal.SyncToken,
 		client.ConfigGlobal.AlbionMarketAPIUrl,
 	)
+
+	app.Event.On("albionmarket:saveconfig", func(e *application.CustomEvent) {
+		payload, ok := e.Data.(map[string]interface{})
+		var token, apiURL string
+		if ok {
+			if t, ok := payload["token"].(string); ok {
+				token = strings.TrimSpace(t)
+			}
+			if u, ok := payload["apiUrl"].(string); ok {
+				apiURL = strings.TrimSpace(u)
+			}
+		}
+		if apiURL == "" {
+			apiURL = client.ConfigGlobal.AlbionMarketAPIUrl
+		}
+		if err := client.SaveAlbionMarketConfig(token, apiURL); err != nil {
+			log.Errorf("[AlbionMarket] Failed to save config: %v", err)
+			return
+		}
+		log.Infof("[AlbionMarket] Config updated via dashboard (token: %s, apiUrl: %s)", token, apiURL)
+		dashboard.SetAlbionMarketConfig(token != "", token, apiURL)
+	})
 
 	setupTray(app, dashboardWindow)
 

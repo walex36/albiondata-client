@@ -28,6 +28,9 @@ type Status struct {
 	// AlbionMarketSyncEnabled indicates whether Albion Market sync is configured (token present).
 	AlbionMarketSyncEnabled bool
 
+	// SyncToken is the configured sync token for Albion Market.
+	SyncToken string
+
 	// AlbionMarketAPIUrl is the destination Albion Market ingest API URL.
 	AlbionMarketAPIUrl string
 }
@@ -215,11 +218,12 @@ func SetCharacterName(characterName string) {
 	}
 }
 
-// SetAlbionMarketConfig records whether Albion Market sync is enabled and its API endpoint URL.
-func SetAlbionMarketConfig(enabled bool, apiURL string) {
+// SetAlbionMarketConfig records whether Albion Market sync is enabled, the token and its API endpoint URL.
+func SetAlbionMarketConfig(enabled bool, token string, apiURL string) {
 	statusMu.Lock()
 	next := status
 	next.AlbionMarketSyncEnabled = enabled
+	next.SyncToken = token
 	next.AlbionMarketAPIUrl = apiURL
 	changed := next != status
 	if changed {

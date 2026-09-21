@@ -102,15 +102,15 @@ func TestSetAlbionMarketConfig_EmitsOnChange(t *testing.T) {
 	var got []Status
 	OnStatusChange(func(s Status) { got = append(got, s) })
 
-	SetAlbionMarketConfig(true, "http://localhost:3001")
-	SetAlbionMarketConfig(true, "http://localhost:3001") // no change, no emit
-	SetAlbionMarketConfig(false, "")
+	SetAlbionMarketConfig(true, "am_test_token", "http://localhost:3001")
+	SetAlbionMarketConfig(true, "am_test_token", "http://localhost:3001") // no change, no emit
+	SetAlbionMarketConfig(false, "", "")
 
 	if len(got) != 2 {
 		t.Fatalf("expected 2 emits, got %d: %+v", len(got), got)
 	}
-	if got[0].AlbionMarketSyncEnabled != true || got[0].AlbionMarketAPIUrl != "http://localhost:3001" ||
-		got[1].AlbionMarketSyncEnabled != false || got[1].AlbionMarketAPIUrl != "" {
+	if got[0].AlbionMarketSyncEnabled != true || got[0].SyncToken != "am_test_token" || got[0].AlbionMarketAPIUrl != "http://localhost:3001" ||
+		got[1].AlbionMarketSyncEnabled != false || got[1].SyncToken != "" || got[1].AlbionMarketAPIUrl != "" {
 		t.Fatalf("unexpected emitted statuses: %+v", got)
 	}
 }
@@ -122,7 +122,7 @@ func TestGetStatus_ReflectsAllSetters(t *testing.T) {
 	SetCaptureRunning(true)
 	SetServer(3, "https+pow://pow.europe.albion-online-data.com")
 	SetCharacterName("TestHero")
-	SetAlbionMarketConfig(true, "http://localhost:3001")
+	SetAlbionMarketConfig(true, "am_hero_token", "http://localhost:3001")
 
 	got := GetStatus()
 	want := Status{
@@ -133,6 +133,7 @@ func TestGetStatus_ReflectsAllSetters(t *testing.T) {
 		IngestBaseURL:           "https+pow://pow.europe.albion-online-data.com",
 		CharacterName:           "TestHero",
 		AlbionMarketSyncEnabled: true,
+		SyncToken:               "am_hero_token",
 		AlbionMarketAPIUrl:      "http://localhost:3001",
 	}
 	if got != want {

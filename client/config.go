@@ -152,6 +152,47 @@ func (config *config) loadAlbionMarketConfig() {
 	}
 }
 
+// SaveAlbionMarketConfig saves the token and api url to the AlbionMarket config.json
+// and updates the running ConfigGlobal state.
+func SaveAlbionMarketConfig(token string, apiURL string) error {
+	ConfigGlobal.SyncToken = token
+	if apiURL != "" {
+		ConfigGlobal.AlbionMarketAPIUrl = apiURL
+	}
+	if ConfigGlobal.SyncToken != "" && ConfigGlobal.PrivateIngestBaseUrls == "" {
+		ConfigGlobal.PrivateIngestBaseUrls = ConfigGlobal.AlbionMarketAPIUrl
+	}
+
+	cfgPath := getAlbionMarketConfigPath()
+	if cfgPath == "" {
+		return fmt.Errorf("could not determine AlbionMarket config path")
+	}
+
+	if err := os.MkdirAll(filepath.Dir(cfgPath), 0755); err != nil {
+		return err
+	}
+
+	var localCfg map[string]interface{}
+	if data, err := os.ReadFile(cfgPath); err == nil {
+		_ = json.Unmarshal(data, &localCfg)
+	}
+	if localCfg == nil {
+		localCfg = make(map[string]interface{})
+	}
+
+	localCfg["syncToken"] = token
+	if apiURL != "" {
+		localCfg["remoteApiUrl"] = apiURL
+	}
+
+	data, err := json.MarshalIndent(localCfg, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(cfgPath, data, 0644)
+}
+
 
 func (config *config) setupWebsocketFlags() {
 	// Setup the config file and parse values

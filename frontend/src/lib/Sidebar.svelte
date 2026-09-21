@@ -54,6 +54,7 @@
     EncryptionStatus: '',
     CharacterName: '',
     AlbionMarketSyncEnabled: false,
+    SyncToken: '',
     AlbionMarketAPIUrl: '',
   });
 
@@ -83,6 +84,40 @@
   function openDriverHelp(e) {
     e.preventDefault();
     Browser.OpenURL(status.DriverHelpURL);
+  }
+
+  let showSettings = $state(false);
+  let tokenInput = $state('');
+  let apiUrlInput = $state('');
+  let saveFeedback = $state('');
+  let saveFeedbackTimer;
+
+  function openSettings() {
+    tokenInput = status.SyncToken || '';
+    apiUrlInput = status.AlbionMarketAPIUrl || 'http://localhost:3001';
+    saveFeedback = '';
+    showSettings = true;
+  }
+
+  function closeSettings() {
+    showSettings = false;
+    clearTimeout(saveFeedbackTimer);
+  }
+
+  function saveSettings() {
+    Events.Emit({
+      name: 'albionmarket:saveconfig',
+      data: {
+        token: tokenInput.trim(),
+        apiUrl: apiUrlInput.trim(),
+      },
+    });
+    saveFeedback = 'Saved!';
+    clearTimeout(saveFeedbackTimer);
+    saveFeedbackTimer = setTimeout(() => {
+      saveFeedback = '';
+      showSettings = false;
+    }, 750);
   }
 </script>
 
@@ -141,6 +176,9 @@
         >
           {status.AlbionMarketSyncEnabled ? 'Token Linked' : 'No Token'}
         </span>
+        <button class="config-btn" type="button" onclick={openSettings} title="Configure Albion Market Token">
+          ⚙️
+        </button>
       </div>
     </div>
   </div>
@@ -166,6 +204,56 @@
         <span class="label">Update available</span>
         <span class="value">{status.UpdateAvailable}</span>
       </span>
+    </div>
+  {/if}
+
+  {#if showSettings}
+    <div class="modal-backdrop" onclick={closeSettings} role="presentation">
+      <div
+        class="modal-card"
+        onclick={(e) => e.stopPropagation()}
+        onkeydown={(e) => e.key === 'Escape' && closeSettings()}
+        role="dialog"
+        aria-modal="true"
+        tabindex="-1"
+      >
+        <div class="modal-header">
+          <h3 class="modal-title">Albion Market Settings</h3>
+          <button class="close-btn" type="button" onclick={closeSettings} aria-label="Close">✕</button>
+        </div>
+        <div class="modal-body">
+          <label class="input-label" for="sync-token-input">
+            Sync Token
+            <span class="input-hint">Used to authenticate your skills and Destiny Board synchronization.</span>
+          </label>
+          <input
+            id="sync-token-input"
+            class="text-input"
+            type="password"
+            placeholder="am_sync_..."
+            bind:value={tokenInput}
+          />
+
+          <label class="input-label" for="api-url-input">
+            API URL
+            <span class="input-hint">Albion Market backend URL (default: http://localhost:3001).</span>
+          </label>
+          <input
+            id="api-url-input"
+            class="text-input"
+            type="text"
+            placeholder="http://localhost:3001"
+            bind:value={apiUrlInput}
+          />
+        </div>
+        <div class="modal-footer">
+          {#if saveFeedback}
+            <span class="save-feedback">{saveFeedback}</span>
+          {/if}
+          <button class="btn btn-secondary" type="button" onclick={closeSettings}>Cancel</button>
+          <button class="btn btn-primary" type="button" onclick={saveSettings}>Save</button>
+        </div>
+      </div>
     </div>
   {/if}
 </aside>
@@ -382,5 +470,145 @@
     font-size: 0.85rem;
     font-weight: 600;
     color: var(--text);
+  }
+
+  .config-btn {
+    background: transparent;
+    border: none;
+    font-size: 0.85rem;
+    cursor: pointer;
+    margin-left: 0.4rem;
+    opacity: 0.65;
+    padding: 0.1rem 0.25rem;
+    border-radius: var(--radius-sm);
+    transition: opacity 0.15s, background 0.15s;
+    line-height: 1;
+  }
+  .config-btn:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+  .modal-card {
+    background: var(--bg-raised);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    width: 360px;
+    max-width: 90vw;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.15rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-title {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-faint);
+    font-size: 0.95rem;
+    cursor: pointer;
+    padding: 0.2rem 0.4rem;
+    border-radius: var(--radius-sm);
+  }
+  .close-btn:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .modal-body {
+    padding: 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+  .input-label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+  .input-hint {
+    font-size: 0.68rem;
+    font-weight: 400;
+    color: var(--text-muted);
+    line-height: 1.35;
+  }
+  .text-input {
+    background: var(--bg-sunken);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    padding: 0.5rem 0.65rem;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .text-input:focus {
+    border-color: var(--blue);
+  }
+  .modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    padding: 0.75rem 1.15rem;
+    background: rgba(0, 0, 0, 0.18);
+    border-top: 1px solid var(--border);
+  }
+  .save-feedback {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--moss);
+    margin-right: auto;
+  }
+  .btn {
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.4rem 0.85rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .btn-secondary {
+    background: transparent;
+    color: var(--text-muted);
+    border-color: var(--border);
+  }
+  .btn-secondary:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.05);
+  }
+  .btn-primary {
+    background: var(--blue);
+    color: #fff;
+  }
+  .btn-primary:hover {
+    background: var(--blue-bright);
   }
 </style>
