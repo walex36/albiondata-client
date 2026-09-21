@@ -7,6 +7,7 @@
     'marketorders.ingest': 'Market Orders',
     'goldprices.ingest': 'Gold Prices',
     'markethistories.ingest': 'Market Histories',
+    'skills': 'Destiny Board Skills',
     'festivities.ingest': 'Festivities',
     'banditevent.ingest': 'Bandit Events',
   };

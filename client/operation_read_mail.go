@@ -46,7 +46,7 @@ func (op operationReadMail) Process(state *albionState) {
 	}
 
 	identifier, _ := uuid.NewV4()
-	sendMsgToPrivateUploaders(&upload, lib.NatsMarketNotifications, state, identifier.String())
+	sendMsgToPrivateUploaders(&upload, lib.NatsMarketNotifications, state, identifier.String(), 1)
 }
 
 func decodeSellNotification(op operationReadMail, body []string) lib.MarketNotification {

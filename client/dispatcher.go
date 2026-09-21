@@ -107,7 +107,12 @@ func sendMsgToPublicUploaders(upload interface{}, topic string, state *albionSta
 	}
 }
 
-func sendMsgToPrivateUploaders(upload lib.PersonalizedUpload, topic string, state *albionState, identifier string) {
+func sendMsgToPrivateUploaders(upload lib.PersonalizedUpload, topic string, state *albionState, identifier string, recordCount int) {
+	if recordCount <= 0 {
+		recordCount = 1
+	}
+	dashboard.IncrementCounterBy(topic, int64(recordCount))
+
 	if ConfigGlobal.DisableUpload {
 		log.Info("Upload is disabled.")
 		return

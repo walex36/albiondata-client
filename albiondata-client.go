@@ -234,6 +234,11 @@ func runDashboardApp() {
 		app.Event.Emit("log:line", l)
 	})
 
+	dashboard.SetAlbionMarketConfig(
+		client.ConfigGlobal.SyncToken != "",
+		client.ConfigGlobal.AlbionMarketAPIUrl,
+	)
+
 	setupTray(app, dashboardWindow)
 
 	// Open and focus the dashboard automatically at launch. Registered as

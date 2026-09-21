@@ -52,6 +52,9 @@
     DriverWarning: '',
     DriverHelpURL: '',
     EncryptionStatus: '',
+    CharacterName: '',
+    AlbionMarketSyncEnabled: false,
+    AlbionMarketAPIUrl: '',
   });
 
   DashboardService.GetStatus().then((s) => (status = s));
@@ -120,6 +123,25 @@
     <div class="field">
       <span class="label">Server</span>
       <span class="value">{serverLabel}</span>
+    </div>
+
+    {#if status.CharacterName}
+      <div class="field">
+        <span class="label">Character</span>
+        <span class="value">{status.CharacterName}</span>
+      </div>
+    {/if}
+
+    <div class="field">
+      <span class="label">Albion Market</span>
+      <div class="sync-row">
+        <span
+          class="sync-pill"
+          class:synced={status.AlbionMarketSyncEnabled}
+        >
+          {status.AlbionMarketSyncEnabled ? 'Token Linked' : 'No Token'}
+        </span>
+      </div>
     </div>
   </div>
 
@@ -229,6 +251,28 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 0.5rem;
+  }
+  .sync-row {
+    display: flex;
+    align-items: center;
+    margin-top: 0.15rem;
+  }
+  .sync-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-faint);
+    border: 1px solid var(--border);
+  }
+  .sync-pill.synced {
+    background: var(--blue-soft);
+    color: var(--blue-bright);
+    border-color: rgba(47, 140, 255, 0.4);
   }
   .status-pill {
     display: inline-flex;

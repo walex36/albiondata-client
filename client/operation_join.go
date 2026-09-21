@@ -1,6 +1,7 @@
 package client
 
 import (
+	"github.com/ao-data/albiondata-client/internal/dashboard"
 	"github.com/ao-data/albiondata-client/lib"
 	"github.com/ao-data/albiondata-client/log"
 )
@@ -40,4 +41,7 @@ func (op operationJoinResponse) Process(state *albionState) {
 		log.Infof("Updating player to %v.", op.CharacterName)
 	}
 	state.CharacterName = op.CharacterName
+	if op.CharacterName != "" {
+		dashboard.SetCharacterName(op.CharacterName)
+	}
 }

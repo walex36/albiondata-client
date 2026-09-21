@@ -21,6 +21,15 @@ type Status struct {
 	// decoded normally). See client/albion_state.go's
 	// ShouldNotifyMarketDataEncrypted for how "encrypted" is decided.
 	EncryptionStatus string
+
+	// CharacterName is the detected active in-game character name.
+	CharacterName string
+
+	// AlbionMarketSyncEnabled indicates whether Albion Market sync is configured (token present).
+	AlbionMarketSyncEnabled bool
+
+	// AlbionMarketAPIUrl is the destination Albion Market ingest API URL.
+	AlbionMarketAPIUrl string
 }
 
 var (
@@ -177,6 +186,41 @@ func SetEncryptionStatus(encryptionStatus string) {
 	statusMu.Lock()
 	next := status
 	next.EncryptionStatus = encryptionStatus
+	changed := next != status
+	if changed {
+		status = next
+	}
+	emit := statusEmit
+	statusMu.Unlock()
+
+	if changed && emit != nil {
+		emit(next)
+	}
+}
+
+// SetCharacterName records the detected in-game character name.
+func SetCharacterName(characterName string) {
+	statusMu.Lock()
+	next := status
+	next.CharacterName = characterName
+	changed := next != status
+	if changed {
+		status = next
+	}
+	emit := statusEmit
+	statusMu.Unlock()
+
+	if changed && emit != nil {
+		emit(next)
+	}
+}
+
+// SetAlbionMarketConfig records whether Albion Market sync is enabled and its API endpoint URL.
+func SetAlbionMarketConfig(enabled bool, apiURL string) {
+	statusMu.Lock()
+	next := status
+	next.AlbionMarketSyncEnabled = enabled
+	next.AlbionMarketAPIUrl = apiURL
 	changed := next != status
 	if changed {
 		status = next

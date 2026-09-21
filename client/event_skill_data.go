@@ -51,5 +51,5 @@ func (event eventSkillData) Process(state *albionState) {
 			log.Infof("[Skill Debug] ID: %d | Level: %d | Fame: %d", sk.ID, sk.Level, sk.Fame)
 		}
 	}
-	sendMsgToPrivateUploaders(&upload, lib.NatsSkillData, state, identifier.String())
+	sendMsgToPrivateUploaders(&upload, lib.NatsSkillData, state, identifier.String(), len(skills))
 }
