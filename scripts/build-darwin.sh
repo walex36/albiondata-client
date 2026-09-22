@@ -2,28 +2,40 @@
 
 set -eo pipefail
 
+TARGET_ARCH="${ARCH:-amd64}"
 rm -f albiondata-client
 rm -f albiondata-client.gz
-rm -f update-darwin-amd64.gz
-rm -f albiondata-client-amd64-mac.zip
+rm -f "update-darwin-$TARGET_ARCH.gz"
+rm -f "albiondata-client-$TARGET_ARCH-mac.zip"
 
-(cd frontend && npm ci && npm run build)
+# Build frontend if dist does not already exist
+if [ ! -f "frontend/dist/index.html" ]; then
+    (cd frontend && if [ ! -d "node_modules" ]; then npm ci; fi && npm run build)
+fi
 
-# Native macOS build. GitHub's macos-latest runners are arm64 hardware, so
-# amd64 output requires explicit CC/CGO_LDFLAGS arch flags. CGO stays on
-# since gopacket links against libpcap.
+# Native macOS build. By default builds amd64 (for GitHub CI releases).
+# Can specify ARCH=arm64 (e.g. ARCH=arm64 ./scripts/build-darwin.sh) for Apple Silicon.
 export CGO_ENABLED=1
-export GOARCH=amd64
-export CC="clang -arch x86_64"
-export CGO_LDFLAGS="-arch x86_64"
-go build -ldflags "-s -w -X main.version=$GITHUB_REF_NAME" -o albiondata-client albiondata-client.go
+TARGET_ARCH="${ARCH:-amd64}"
+export GOARCH="$TARGET_ARCH"
+
+if [ "$TARGET_ARCH" = "arm64" ]; then
+    export CC="clang -arch arm64"
+    export CGO_LDFLAGS="-arch arm64"
+else
+    export CC="clang -arch x86_64"
+    export CGO_LDFLAGS="-arch x86_64"
+fi
+
+VERSION="${GITHUB_REF_NAME:-dev}"
+go build -ldflags "-s -w -X main.version=$VERSION" -o albiondata-client albiondata-client.go
 
 gzip -k9 albiondata-client
-mv albiondata-client.gz update-darwin-amd64.gz
+mv albiondata-client.gz "update-darwin-$TARGET_ARCH.gz"
 
 # Zipped folder with a run.command file that runs the client under sudo
 TEMP="albiondata-client"
-ZIPNAME="albiondata-client-amd64-mac.zip"
+ZIPNAME="albiondata-client-$TARGET_ARCH-mac.zip"
 rm -rfv ./scripts/$TEMP
 rm -rfv ./$ZIPNAME
 mkdir -v ./scripts/$TEMP

@@ -1,4 +1,4 @@
-.PHONY: run frontend fmt validate-fmt build-windows build-linux build-darwin
+.PHONY: run frontend fmt validate-fmt build-windows build-linux build-darwin build-darwin-arm64
 
 run:
 	scripts/run.sh
@@ -20,3 +20,6 @@ build-linux:
 
 build-darwin:
 	scripts/build-darwin.sh
+
+build-darwin-arm64:
+	ARCH=arm64 scripts/build-darwin.sh
