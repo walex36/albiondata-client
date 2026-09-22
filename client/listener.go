@@ -214,7 +214,7 @@ func (l *listener) onRequest(opCode byte, params map[byte]interface{}) {
 		params[253] = uint16(opCode)
 	}
 	if opCode != 1 && opCode != 22 {
-		log.Infof("[Albion Traffic Request] opCode=%v | keys=%v", opCode, getMapKeys(params))
+		log.Debugf("[Albion Traffic Request] opCode=%v | keys=%v", opCode, getMapKeys(params))
 	}
 
 	operation, err := decodeRequest(params)

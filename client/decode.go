@@ -47,7 +47,7 @@ func decodeRequest(params map[uint8]interface{}) (operation operation, err error
 		return nil, nil
 	}
 	if code != 1 && code != 22 {
-		log.Infof("[Sniffer Debug Request] code: %v (keys: %v)", code, getMapKeys(params))
+		log.Debugf("[Sniffer Debug Request] code: %v (keys: %v)", code, getMapKeys(params))
 	}
 
 	switch OperationType(code) {
@@ -81,20 +81,10 @@ func decodeResponse(params map[uint8]interface{}) (operation operation, err erro
 		return nil, nil
 	}
 
-	log.Infof("[Sniffer Debug Response] code: %v (keys: %v)", code, getMapKeys(params))
+	log.Debugf("[Sniffer Debug Response] code: %v (keys: %v)", code, getMapKeys(params))
 
 	switch OperationType(code) {
 	case opJoin:
-		log.Infof("[opJoin DUMP START] Total keys: %d", len(params))
-		for k, v := range params {
-			if k == 55 {
-				if b, ok := v.([]uint8); ok {
-					log.Infof("[opJoin Key 55 LENGTH] %d bytes", len(b))
-				}
-			}
-			log.Infof("[opJoin Key %v] Type: %T | Preview: %v", k, v, formatVal(v))
-		}
-		log.Infof("[opJoin DUMP END]")
 		operation = &operationJoinResponse{}
 	case opGetGameServerByCluster:
 		operation = &operationGetGameServerByCluster{}
@@ -144,14 +134,13 @@ func decodeEvent(params map[uint8]interface{}) (event operation, err error) {
 		return nil, nil
 	}
 
-	// Silencia eventos barulhentos para deixar o terminal limpo
 	if eventType == 141 {
-		log.Infof("[Target Event 141 Details] p[0]=%v | p[1]=%v | p[2]=%v | p[3]=%v | p[4]=%v", formatVal(params[0]), formatVal(params[1]), formatVal(params[2]), formatVal(params[3]), formatVal(params[4]))
+		log.Debugf("[Target Event 141 Details] p[0]=%v | p[1]=%v | p[2]=%v | p[3]=%v | p[4]=%v", formatVal(params[0]), formatVal(params[1]), formatVal(params[2]), formatVal(params[3]), formatVal(params[4]))
 	}
 
 	switch EventType(eventType) {
 	case evCharacterStats, evFullAchievementInfo, evAchievementProgressInfo, evFullAchievementProgressInfo, evFinishedAchievement, evFullTrackedAchievementInfo, evFullAutoLearnAchievementInfo, evEpicAchievementAndStatsUpdate:
-		log.Infof("[🔥 DISPARO DESTINY BOARD %v] Iniciando parse para eventSkillData!", eventType)
+		log.Debugf("[Destiny Board %v] Parsing eventSkillData", eventType)
 		event = &eventSkillData{}
 	//case evRedZonePlayerNotification:
 	//	event = &eventRedZonePlayerNotification{}
